@@ -11,10 +11,31 @@ import kotlinx.coroutines.flow.Flow
 abstract class TrackDao {
 
     @Query(
-        "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName " +
+        "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName, " +
+            "tracks.lastPositionMs, tracks.lastPlayedAt " +
             "FROM tracks INNER JOIN folders ON folders.id = tracks.folderId"
     )
     abstract fun observeAll(): Flow<List<TrackItem>>
+
+    @Query(
+        "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName, " +
+            "tracks.lastPositionMs, tracks.lastPlayedAt " +
+            "FROM tracks INNER JOIN folders ON folders.id = tracks.folderId " +
+            "WHERE tracks.lastPlayedAt IS NOT NULL ORDER BY tracks.lastPlayedAt DESC LIMIT 50"
+    )
+    abstract fun observeRecent(): Flow<List<TrackItem>>
+
+    @Query("SELECT lastPositionMs FROM tracks WHERE uri = :uri")
+    abstract suspend fun getPosition(uri: String): Long?
+
+    @Query("SELECT uri FROM tracks WHERE lastPlayedAt IS NOT NULL ORDER BY lastPlayedAt DESC LIMIT 1")
+    abstract suspend fun getLastPlayedUri(): String?
+
+    @Query("UPDATE tracks SET lastPositionMs = :positionMs WHERE uri = :uri")
+    abstract suspend fun savePosition(uri: String, positionMs: Long)
+
+    @Query("UPDATE tracks SET lastPlayedAt = :time WHERE uri = :uri")
+    abstract suspend fun markPlayed(uri: String, time: Long)
 
     @Query("SELECT uri FROM tracks WHERE folderId = :folderId")
     abstract suspend fun getUris(folderId: Long): List<String>

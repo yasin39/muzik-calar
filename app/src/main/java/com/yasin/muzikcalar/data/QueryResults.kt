@@ -11,5 +11,7 @@ data class TrackItem(
     val id: Long,
     val uri: String,
     val title: String,
-    val folderName: String
+    val folderName: String,
+    val lastPositionMs: Long,
+    val lastPlayedAt: Long?
 )

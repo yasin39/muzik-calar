@@ -3,6 +3,7 @@ package com.yasin.muzikcalar.ui
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.yasin.muzikcalar.data.AppDatabase
@@ -16,6 +17,7 @@ import java.text.Collator
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -34,6 +36,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .map { list -> list.sortedWith(compareBy(collator) { it.title }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val recentTracks: StateFlow<List<TrackItem>> = database.trackDao().observeRecent()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val folders: StateFlow<List<FolderWithCount>> = database.folderDao().observeWithCounts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -43,10 +48,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         rescanAll()
+        restoreLastSession()
     }
 
     fun playTrack(index: Int) {
         player.play(tracks.value, index)
+    }
+
+    fun playRecent(index: Int) {
+        player.play(recentTracks.value, index)
     }
 
     override fun onCleared() {
@@ -106,6 +116,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } finally {
                 scanning.value = false
+            }
+        }
+    }
+
+    /** Uygulama açılınca son dinlenen parçayı, kalınan yerde duraklatılmış olarak hazırlar. */
+    private fun restoreLastSession() {
+        viewModelScope.launch {
+            val lastUri = database.trackDao().getLastPlayedUri() ?: return@launch
+            snapshotFlow { player.isConnected }.first { it }
+            val list = tracks.first { it.isNotEmpty() }
+            val index = list.indexOfFirst { it.uri == lastUri }
+            if (index >= 0) {
+                player.prepareIfIdle(list, index)
             }
         }
     }

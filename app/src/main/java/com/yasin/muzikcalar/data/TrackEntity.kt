@@ -1,5 +1,6 @@
 package com.yasin.muzikcalar.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -21,5 +22,9 @@ data class TrackEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val folderId: Long,
     val uri: String,
-    val title: String
+    val title: String,
+    /** Dosyada kalınan yer (milisaniye). */
+    @ColumnInfo(defaultValue = "0") val lastPositionMs: Long = 0,
+    /** Son çalınma zamanı; hiç çalınmadıysa null. */
+    val lastPlayedAt: Long? = null
 )

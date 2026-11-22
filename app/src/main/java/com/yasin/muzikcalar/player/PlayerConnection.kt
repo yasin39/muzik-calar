@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -31,6 +32,8 @@ class PlayerConnection(context: Context) {
         private set
     var speed by mutableFloatStateOf(1f)
         private set
+    var isConnected by mutableStateOf(false)
+        private set
 
     val positionMs: Long
         get() = controller?.currentPosition ?: 0L
@@ -53,28 +56,29 @@ class PlayerConnection(context: Context) {
                 val connected = controllerFuture.get()
                 controller = connected
                 connected.addListener(listener)
+                isConnected = true
                 updateState()
             },
             ContextCompat.getMainExecutor(context)
         )
     }
 
+    /** Listeyi verilen parçadan başlatır; başlangıç yeri serviste kalınan yerden belirlenir. */
     fun play(tracks: List<TrackItem>, index: Int) {
         val player = controller ?: return
-        val items = tracks.map { track ->
-            MediaItem.Builder()
-                .setMediaId(track.uri)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(track.title)
-                        .setArtist(track.folderName)
-                        .build()
-                )
-                .build()
-        }
-        player.setMediaItems(items, index, 0L)
+        player.setMediaItems(toMediaItems(tracks), index, C.TIME_UNSET)
         player.prepare()
         player.play()
+    }
+
+    /** Uygulama açılışında son dinlenen parçayı çalmadan hazırlar (çalar boşsa). */
+    fun prepareIfIdle(tracks: List<TrackItem>, index: Int) {
+        val player = controller ?: return
+        if (player.mediaItemCount > 0) {
+            return
+        }
+        player.setMediaItems(toMediaItems(tracks), index, C.TIME_UNSET)
+        player.prepare()
     }
 
     fun togglePlayPause() {
@@ -106,6 +110,20 @@ class PlayerConnection(context: Context) {
         controller?.removeListener(listener)
         MediaController.releaseFuture(controllerFuture)
         controller = null
+    }
+
+    private fun toMediaItems(tracks: List<TrackItem>): List<MediaItem> {
+        return tracks.map { track ->
+            MediaItem.Builder()
+                .setMediaId(track.uri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(track.title)
+                        .setArtist(track.folderName)
+                        .build()
+                )
+                .build()
+        }
     }
 
     private fun updateState() {

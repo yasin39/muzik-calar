@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import com.yasin.muzikcalar.data.TrackItem
 
 @Composable
-fun TracksScreen(tracks: List<TrackItem>, onTrackClick: (Int) -> Unit) {
+fun TracksScreen(tracks: List<TrackItem>, emptyText: String, onTrackClick: (Int) -> Unit) {
     if (tracks.isEmpty()) {
-        MessageScreen(text = "Henüz parça yok.\nKlasörler tabından klasör ekleyebilirsin.")
+        MessageScreen(text = emptyText)
         return
     }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -28,7 +28,14 @@ fun TracksScreen(tracks: List<TrackItem>, onTrackClick: (Int) -> Unit) {
             ListItem(
                 modifier = Modifier.clickable { onTrackClick(index) },
                 headlineContent = { Text(track.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-                supportingContent = { Text(track.folderName, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                supportingContent = {
+                    val detail = if (track.lastPositionMs > 0) {
+                        "${track.folderName} · Kaldığın yer: ${formatTime(track.lastPositionMs)}"
+                    } else {
+                        track.folderName
+                    }
+                    Text(detail, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             )
         }
     }

@@ -34,6 +34,7 @@ private val tabs = listOf(
 fun MainScreen(viewModel: MainViewModel) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
+    val recentTracks by viewModel.recentTracks.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val isScanning by viewModel.isScanning.collectAsStateWithLifecycle()
     var showPlayer by rememberSaveable { mutableStateOf(false) }
@@ -62,9 +63,17 @@ fun MainScreen(viewModel: MainViewModel) {
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
-                0 -> TracksScreen(tracks = tracks, onTrackClick = { viewModel.playTrack(it) })
+                0 -> TracksScreen(
+                    tracks = tracks,
+                    emptyText = "Henüz parça yok.\nKlasörler tabından klasör ekleyebilirsin.",
+                    onTrackClick = { viewModel.playTrack(it) }
+                )
                 1 -> MessageScreen(text = "Favorilerin burada görünecek.")
-                2 -> MessageScreen(text = "Son oynattığın parçalar burada görünecek.")
+                2 -> TracksScreen(
+                    tracks = recentTracks,
+                    emptyText = "Henüz bir parça dinlemedin.",
+                    onTrackClick = { viewModel.playRecent(it) }
+                )
                 else -> FoldersScreen(
                     folders = folders,
                     isScanning = isScanning,
