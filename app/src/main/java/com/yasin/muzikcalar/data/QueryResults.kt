@@ -13,5 +13,6 @@ data class TrackItem(
     val title: String,
     val folderName: String,
     val lastPositionMs: Long,
-    val lastPlayedAt: Long?
+    val lastPlayedAt: Long?,
+    val isFavorite: Boolean
 )

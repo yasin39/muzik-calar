@@ -26,5 +26,6 @@ data class TrackEntity(
     /** Dosyada kalınan yer (milisaniye). */
     @ColumnInfo(defaultValue = "0") val lastPositionMs: Long = 0,
     /** Son çalınma zamanı; hiç çalınmadıysa null. */
-    val lastPlayedAt: Long? = null
+    val lastPlayedAt: Long? = null,
+    @ColumnInfo(defaultValue = "0") val isFavorite: Boolean = false
 )

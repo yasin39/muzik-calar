@@ -76,7 +76,12 @@ fun MiniPlayer(player: PlayerConnection, onOpen: () -> Unit) {
 
 /** Tam ekran oynatıcı. */
 @Composable
-fun PlayerScreen(player: PlayerConnection, onClose: () -> Unit) {
+fun PlayerScreen(
+    player: PlayerConnection,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onClose: () -> Unit
+) {
     BackHandler(onBack = onClose)
 
     var positionMs by remember { mutableLongStateOf(player.positionMs) }
@@ -102,6 +107,18 @@ fun PlayerScreen(player: PlayerConnection, onClose: () -> Unit) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = onClose) {
                     Icon(painterResource(R.drawable.ic_expand_more), contentDescription = "Kapat")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = onToggleFavorite) {
+                    if (isFavorite) {
+                        Icon(
+                            painterResource(R.drawable.ic_favorite),
+                            contentDescription = "Favorilerden çıkar",
+                            tint = FavoriteColor
+                        )
+                    } else {
+                        Icon(painterResource(R.drawable.ic_favorite_border), contentDescription = "Favorilere ekle")
+                    }
                 }
             }
             Spacer(modifier = Modifier.weight(1f))

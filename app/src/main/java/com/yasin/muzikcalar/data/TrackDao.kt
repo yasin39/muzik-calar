@@ -12,18 +12,29 @@ abstract class TrackDao {
 
     @Query(
         "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName, " +
-            "tracks.lastPositionMs, tracks.lastPlayedAt " +
+            "tracks.lastPositionMs, tracks.lastPlayedAt, tracks.isFavorite " +
             "FROM tracks INNER JOIN folders ON folders.id = tracks.folderId"
     )
     abstract fun observeAll(): Flow<List<TrackItem>>
 
     @Query(
         "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName, " +
-            "tracks.lastPositionMs, tracks.lastPlayedAt " +
+            "tracks.lastPositionMs, tracks.lastPlayedAt, tracks.isFavorite " +
             "FROM tracks INNER JOIN folders ON folders.id = tracks.folderId " +
             "WHERE tracks.lastPlayedAt IS NOT NULL ORDER BY tracks.lastPlayedAt DESC LIMIT 50"
     )
     abstract fun observeRecent(): Flow<List<TrackItem>>
+
+    @Query(
+        "SELECT tracks.id, tracks.uri, tracks.title, folders.name AS folderName, " +
+            "tracks.lastPositionMs, tracks.lastPlayedAt, tracks.isFavorite " +
+            "FROM tracks INNER JOIN folders ON folders.id = tracks.folderId " +
+            "WHERE tracks.isFavorite = 1"
+    )
+    abstract fun observeFavorites(): Flow<List<TrackItem>>
+
+    @Query("UPDATE tracks SET isFavorite = :isFavorite WHERE id = :id")
+    abstract suspend fun setFavorite(id: Long, isFavorite: Boolean)
 
     @Query("SELECT lastPositionMs FROM tracks WHERE uri = :uri")
     abstract suspend fun getPosition(uri: String): Long?

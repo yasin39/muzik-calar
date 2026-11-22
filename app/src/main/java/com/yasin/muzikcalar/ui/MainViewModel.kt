@@ -39,6 +39,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val recentTracks: StateFlow<List<TrackItem>> = database.trackDao().observeRecent()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val favoriteTracks: StateFlow<List<TrackItem>> = database.trackDao().observeFavorites()
+        .map { list -> list.sortedWith(compareBy(collator) { it.title }) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val folders: StateFlow<List<FolderWithCount>> = database.folderDao().observeWithCounts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -57,6 +61,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun playRecent(index: Int) {
         player.play(recentTracks.value, index)
+    }
+
+    fun playFavorite(index: Int) {
+        player.play(favoriteTracks.value, index)
+    }
+
+    fun toggleFavorite(track: TrackItem) {
+        viewModelScope.launch {
+            database.trackDao().setFavorite(track.id, !track.isFavorite)
+        }
     }
 
     override fun onCleared() {

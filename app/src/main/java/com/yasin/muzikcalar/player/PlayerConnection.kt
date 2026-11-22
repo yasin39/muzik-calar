@@ -24,6 +24,8 @@ class PlayerConnection(context: Context) {
 
     var currentTitle by mutableStateOf<String?>(null)
         private set
+    var currentMediaId by mutableStateOf<String?>(null)
+        private set
     var currentFolder by mutableStateOf("")
         private set
     var isPlaying by mutableStateOf(false)
@@ -128,6 +130,7 @@ class PlayerConnection(context: Context) {
 
     private fun updateState() {
         val player = controller ?: return
+        currentMediaId = player.currentMediaItem?.mediaId
         val metadata = player.currentMediaItem?.mediaMetadata
         currentTitle = metadata?.title?.toString()
         currentFolder = metadata?.artist?.toString() ?: ""

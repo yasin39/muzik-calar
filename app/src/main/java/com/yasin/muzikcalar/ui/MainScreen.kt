@@ -35,12 +35,19 @@ fun MainScreen(viewModel: MainViewModel) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val recentTracks by viewModel.recentTracks.collectAsStateWithLifecycle()
+    val favoriteTracks by viewModel.favoriteTracks.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val isScanning by viewModel.isScanning.collectAsStateWithLifecycle()
     var showPlayer by rememberSaveable { mutableStateOf(false) }
 
     if (showPlayer && viewModel.player.currentTitle != null) {
-        PlayerScreen(player = viewModel.player, onClose = { showPlayer = false })
+        val currentTrack = tracks.find { it.uri == viewModel.player.currentMediaId }
+        PlayerScreen(
+            player = viewModel.player,
+            isFavorite = currentTrack?.isFavorite == true,
+            onToggleFavorite = { currentTrack?.let { viewModel.toggleFavorite(it) } },
+            onClose = { showPlayer = false }
+        )
         return
     }
 
@@ -66,13 +73,20 @@ fun MainScreen(viewModel: MainViewModel) {
                 0 -> TracksScreen(
                     tracks = tracks,
                     emptyText = "Henüz parça yok.\nKlasörler tabından klasör ekleyebilirsin.",
-                    onTrackClick = { viewModel.playTrack(it) }
+                    onTrackClick = { viewModel.playTrack(it) },
+                    onToggleFavorite = { viewModel.toggleFavorite(it) }
                 )
-                1 -> MessageScreen(text = "Favorilerin burada görünecek.")
+                1 -> TracksScreen(
+                    tracks = favoriteTracks,
+                    emptyText = "Henüz favorin yok.\nParçaların yanındaki kalbe dokunarak ekleyebilirsin.",
+                    onTrackClick = { viewModel.playFavorite(it) },
+                    onToggleFavorite = { viewModel.toggleFavorite(it) }
+                )
                 2 -> TracksScreen(
                     tracks = recentTracks,
                     emptyText = "Henüz bir parça dinlemedin.",
-                    onTrackClick = { viewModel.playRecent(it) }
+                    onTrackClick = { viewModel.playRecent(it) },
+                    onToggleFavorite = { viewModel.toggleFavorite(it) }
                 )
                 else -> FoldersScreen(
                     folders = folders,
