@@ -2,6 +2,7 @@ package com.yasin.muzikcalar.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -11,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -34,24 +36,33 @@ fun MainScreen(viewModel: MainViewModel) {
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val isScanning by viewModel.isScanning.collectAsStateWithLifecycle()
+    var showPlayer by rememberSaveable { mutableStateOf(false) }
+
+    if (showPlayer && viewModel.player.currentTitle != null) {
+        PlayerScreen(player = viewModel.player, onClose = { showPlayer = false })
+        return
+    }
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                tabs.forEachIndexed { index, tab ->
-                    NavigationBarItem(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-                        label = { Text(tab.label, maxLines = 2, textAlign = TextAlign.Center) }
-                    )
+            Column {
+                MiniPlayer(player = viewModel.player, onOpen = { showPlayer = true })
+                NavigationBar {
+                    tabs.forEachIndexed { index, tab ->
+                        NavigationBarItem(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            icon = { Icon(painterResource(tab.icon), contentDescription = null) },
+                            label = { Text(tab.label, maxLines = 2, textAlign = TextAlign.Center) }
+                        )
+                    }
                 }
             }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
-                0 -> TracksScreen(tracks = tracks)
+                0 -> TracksScreen(tracks = tracks, onTrackClick = { viewModel.playTrack(it) })
                 1 -> MessageScreen(text = "Favorilerin burada görünecek.")
                 2 -> MessageScreen(text = "Son oynattığın parçalar burada görünecek.")
                 else -> FoldersScreen(

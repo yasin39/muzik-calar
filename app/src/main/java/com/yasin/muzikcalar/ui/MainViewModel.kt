@@ -10,6 +10,7 @@ import com.yasin.muzikcalar.data.FolderEntity
 import com.yasin.muzikcalar.data.FolderWithCount
 import com.yasin.muzikcalar.data.TrackEntity
 import com.yasin.muzikcalar.data.TrackItem
+import com.yasin.muzikcalar.player.PlayerConnection
 import com.yasin.muzikcalar.scan.FolderScanner
 import java.text.Collator
 import java.util.Locale
@@ -38,8 +39,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val isScanning: StateFlow<Boolean> = scanning
 
+    val player = PlayerConnection(application)
+
     init {
         rescanAll()
+    }
+
+    fun playTrack(index: Int) {
+        player.play(tracks.value, index)
+    }
+
+    override fun onCleared() {
+        player.release()
+        super.onCleared()
     }
 
     fun addFolder(treeUri: Uri) {
