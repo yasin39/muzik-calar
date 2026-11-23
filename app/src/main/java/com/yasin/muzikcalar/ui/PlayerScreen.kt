@@ -158,7 +158,9 @@ fun PlayerScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Sol tarafta yer tutucu: oynatma düğmeleri ortada kalsın diye tekrarla düğmesiyle aynı genişlikte.
+                Spacer(modifier = Modifier.size(48.dp))
                 IconButton(onClick = { player.previous() }, modifier = Modifier.size(56.dp)) {
                     Icon(painterResource(R.drawable.ic_skip_previous), contentDescription = "Önceki")
                 }
@@ -171,6 +173,17 @@ fun PlayerScreen(
                 }
                 IconButton(onClick = { player.next() }, enabled = player.hasNext, modifier = Modifier.size(56.dp)) {
                     Icon(painterResource(R.drawable.ic_skip_next), contentDescription = "Sonraki")
+                }
+                IconButton(onClick = { player.toggleRepeatOne() }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        painterResource(R.drawable.ic_repeat_one),
+                        contentDescription = if (player.isRepeatingOne) "Tekrarı kapat" else "Parçayı tekrarla",
+                        tint = if (player.isRepeatingOne) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        }
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))

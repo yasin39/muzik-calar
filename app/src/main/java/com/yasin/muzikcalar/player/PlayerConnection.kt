@@ -36,6 +36,8 @@ class PlayerConnection(context: Context) {
         private set
     var isConnected by mutableStateOf(false)
         private set
+    var isRepeatingOne by mutableStateOf(false)
+        private set
 
     val positionMs: Long
         get() = controller?.currentPosition ?: 0L
@@ -104,6 +106,15 @@ class PlayerConnection(context: Context) {
         controller?.seekTo(positionMs)
     }
 
+    fun toggleRepeatOne() {
+        val player = controller ?: return
+        player.repeatMode = if (player.repeatMode == Player.REPEAT_MODE_ONE) {
+            Player.REPEAT_MODE_OFF
+        } else {
+            Player.REPEAT_MODE_ONE
+        }
+    }
+
     fun changeSpeed(newSpeed: Float) {
         controller?.setPlaybackSpeed(newSpeed)
     }
@@ -137,5 +148,6 @@ class PlayerConnection(context: Context) {
         isPlaying = player.isPlaying
         hasNext = player.hasNextMediaItem()
         speed = player.playbackParameters.speed
+        isRepeatingOne = player.repeatMode == Player.REPEAT_MODE_ONE
     }
 }
